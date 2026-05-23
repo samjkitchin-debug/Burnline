@@ -33,7 +33,7 @@ Apply all migrations under `supabase/migrations/` (see [setup guide](docs/ops/se
 
 **Auth (v1):** email + password only — no magic link, OTP, or OAuth in the app. Supabase **Authentication → Providers → Email**: sign-up on, **Confirm email OFF** for local dev. Site URL `http://localhost:3000`, redirect `http://localhost:3000/**`.
 
-**Vercel deployment:** set `NEXT_PUBLIC_SUPABASE_URL` (`https://huptejlrdmbkwuxmaejm.supabase.co`) and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in **Vercel → Project Settings → Environment Variables** for Production and Preview. Redeploy after adding them. Do not use the dashboard URL as the project URL. Do not add the service role key.
+**Vercel deployment:** Framework Preset **Next.js**, Root Directory and Output Directory **blank** (repo root; do not override output), Production Branch **main**, env vars `NEXT_PUBLIC_SUPABASE_URL` (`https://huptejlrdmbkwuxmaejm.supabase.co`) and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for Production and Preview. If the build is Ready and lists App Router routes but production shows platform **404 NOT_FOUND**, check Framework Preset first — Burnline hit this when preset was not Next.js. See [setup guide](docs/ops/setup-and-deployment.md) and [Vercel smoke test](docs/ops/vercel-smoke-test.md). Do not add the service role key.
 
 **Session (production):** Burnline v1 has **no** Next middleware or proxy. Request-boundary cookie refresh is intentionally deferred after repeated Vercel failures. Server route guards and Supabase RLS remain the access-control source of truth. Users may need to log in again when access tokens expire. See [auth session](docs/architecture/auth-session.md) and [Vercel smoke test](docs/ops/vercel-smoke-test.md).
 

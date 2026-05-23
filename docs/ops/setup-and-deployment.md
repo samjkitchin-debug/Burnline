@@ -190,6 +190,21 @@ If your local branch is still `master`, rename before push or push explicitly: `
 
 ## Vercel deployment checklist
 
+### Required Vercel project settings
+
+Configure under **Vercel → Project → Settings → General** and **Build & Deployment**:
+
+| Setting | Required value |
+|---------|----------------|
+| **Framework Preset** | **Next.js** |
+| **Root Directory** | Blank (repo root) |
+| **Build Command** | `npm run build` or leave on **auto** |
+| **Output Directory** | Blank — do **not** override (Next.js manages output) |
+| **Production Branch** | `main` |
+| **Node.js Version** | **22.x** recommended while debugging deploy issues |
+
+**Burnline production incident:** The app built successfully and Vercel showed a **Ready** deployment, but production returned platform-level **404 NOT_FOUND**. The root cause was **Framework Preset not set to Next.js**. Do not assume a platform 404 is an App Router bug — if the build log lists routes (e.g. `/`, `/login`, `/today`) but Vercel still serves platform 404, suspect **Vercel project configuration first**.
+
 ### Required environment variables (Vercel → Project Settings → Environment Variables)
 
 Set **both** for **Production** and **Preview**. Redeploy after adding or changing these.
@@ -202,27 +217,33 @@ Set **both** for **Production** and **Preview**. Redeploy after adding or changi
 **Do not** add the service role key to Vercel — it is never used by the app.  
 **Do not** use the Supabase dashboard URL — use the API project URL starting with `https://`.
 
+- [ ] **Framework Preset** is **Next.js**
+- [ ] **Output Directory** is blank (not overridden)
+- [ ] **Root Directory** is blank / repo root
+- [ ] **Production Branch** is `main`
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` set in Vercel (Production + Preview)
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` set in Vercel (Production + Preview)
 - [ ] **No `middleware.ts` or `proxy.ts`** — Burnline v1 intentionally has no request-boundary layer; route guards + RLS enforce access.
-- [ ] **Root directory** in Vercel project settings is the repo root (not a subdirectory) unless the monorepo layout requires otherwise.
 - [ ] Import repo https://github.com/samjkitchin-debug/Burnline  
-- [ ] Framework preset: **Next.js**  
 - [ ] Add Vercel preview/production URLs to Supabase **Redirect URLs**  
 - [ ] Update Supabase **Site URL** for production when ready  
-- [ ] Run production build: `npm run build`  
+- [ ] Run production build: `npm run build` — confirm App Router routes in build output  
 - [ ] Deploy; do not enable service role in Vercel for the Next.js app in v1  
 
 ### Troubleshooting: platform `404 NOT_FOUND`
 
-If the production URL shows a Vercel platform-level **404 NOT_FOUND** (not an app-level page):
+If the build **succeeds**, the deployment is **Ready**, and the build log **lists App Router routes**, but production still shows Vercel platform-level **404 NOT_FOUND** (not an app-level page):
 
-1. Confirm the **latest deployment is Ready** (not Failed or Building) in Vercel → Deployments.
-2. Confirm **Root Directory** in Vercel project settings points to the repo root where `package.json` and `src/app/` live.
-3. Confirm the deployed commit has **no** `middleware.ts` or `proxy.ts` at repo root or under `src/`.
-4. Run `npm run build` locally and confirm app routes appear in build output (e.g. `/`, `/login`, `/today`, `/about`).
-5. Confirm the production **domain/alias** points to the latest successful deployment (not a stale or deleted deployment).
-6. Redeploy without build cache if the deployment looks correct but still 404s.
+1. Check **Framework Preset** is **Next.js** (most common Burnline root cause).
+2. Check **Output Directory** is **blank** — not set to `dist`, `build`, or `.next` manually.
+3. Check **Root Directory** is the repo root (blank, or path where `package.json` and `src/app/` live).
+4. Check the production **domain/alias** points to the **latest** successful deployment.
+5. Redeploy **without build cache**.
+
+Then, if still failing:
+
+6. Confirm the deployed commit has **no** `middleware.ts` or `proxy.ts`.
+7. Run `npm run build` locally and compare route list to deployment logs.
 
 See [Vercel smoke test](vercel-smoke-test.md) for post-deploy checks.
 

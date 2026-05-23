@@ -8,9 +8,14 @@ Burnline v1 has **no** Next middleware or proxy. Route guards and RLS enforce ac
 
 - [ ] Deployment status is **Ready** (not Failed or Building)
 - [ ] Deployed commit matches the intended branch (usually `main`)
+- [ ] **Framework Preset** is **Next.js** (Vercel → Settings → General)
+- [ ] **Root Directory** is blank / repo root
+- [ ] **Output Directory** is blank (not overridden)
+- [ ] **Production Branch** is `main`
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set for this environment
 - [ ] No `middleware.ts` or `proxy.ts` in the deployed commit
-- [ ] Local `npm run build` lists app routes (`/`, `/login`, `/today`, `/about`, etc.)
+- [ ] Deployment build log lists App Router routes (`/`, `/login`, `/today`, `/about`, etc.)
+- [ ] Local `npm run build` lists the same app routes
 
 ## Public routes (no auth required)
 
@@ -43,12 +48,20 @@ Burnline v1 has **no** Next middleware or proxy. Route guards and RLS enforce ac
 
 ### If production shows platform `404 NOT_FOUND`
 
-1. Verify latest deployment is **Ready**
-2. Verify Vercel **Root Directory** is the repo root (where `package.json` and `src/app/` live)
-3. Verify no `middleware.ts` or `proxy.ts` exists in the deployed commit
-4. Verify app routes were listed in the deployment build output
-5. Verify production domain/alias points to the latest successful deployment
-6. Redeploy without build cache
+**Do not assume this is a missing App Router route.** Burnline has hit this when the build succeeded and routes were listed, but **Framework Preset was not Next.js**. Suspect Vercel project configuration first.
+
+If the build succeeds and routes are listed, but production shows platform **404 NOT_FOUND**:
+
+1. Check **Framework Preset** is **Next.js**.
+2. Check **Output Directory** is **blank** (not overridden).
+3. Check **Root Directory** is repo root (blank).
+4. Check domain/alias points to the **latest** deployment.
+5. Redeploy **without build cache**.
+
+Then:
+
+6. Verify no `middleware.ts` or `proxy.ts` in the deployed commit.
+7. Compare deployment build route list to local `npm run build` output.
 
 ### If production shows `MIDDLEWARE_INVOCATION_FAILED`
 
