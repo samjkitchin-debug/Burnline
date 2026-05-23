@@ -1,15 +1,15 @@
 /**
- * WARNING:
- * This file runs in the Vercel middleware/proxy runtime.
+ * NOTE:
+ * This file runs in the Node.js runtime (Next.js 16+ "Proxy" convention).
  * Keep it self-contained — do not import app helpers, route guards,
- * server auth helpers, next/headers, server-only, data loaders, or Node APIs.
- * Middleware refreshes Supabase cookies only and must fail open.
+ * next/headers, or server-only data loaders.
+ * Proxy refreshes Supabase cookies only and must fail open.
  * Route guards own access control. See docs/architecture/auth-session.md
  */
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   try {
@@ -17,13 +17,6 @@ export async function middleware(request: NextRequest) {
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseAnonKey) {
-      return response;
-    }
-
-    // Validate the URL is well-formed before passing to createServerClient.
-    try {
-      new URL(supabaseUrl);
-    } catch {
       return response;
     }
 
@@ -50,7 +43,7 @@ export async function middleware(request: NextRequest) {
 
     return response;
   } catch {
-    // Fail open — never let middleware crash the app.
+    // Fail open — never let proxy crash the app.
     return response;
   }
 }
