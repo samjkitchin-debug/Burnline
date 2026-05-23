@@ -80,7 +80,7 @@ Burnline v1 is **email + password only**. No magic link, OTP code, or OAuth in t
 
 ## Anti-patterns to watch (fail if seen)
 
-- [ ] No redirect to login from middleware
+- [ ] No redirect to login from middleware (Edge proxy refreshes cookies only; see `src/lib/supabase/edge-middleware.ts`)
 - [ ] No client-side “checking session…” on every page load
 - [ ] No `getSession()` in Network tab used for route gates
 - [ ] Auth logs in server console contain no emails, tokens, or spend amounts
