@@ -15,6 +15,7 @@ Prioritised hardening for Burnline. Inspired by ISO/IEC 27001 and 27701 practice
 | `.env.local` gitignored; `*.zip` gitignored | Done |
 | `requirePublicEnv()` for Supabase URL/anon key | Done |
 | Route guards + `getServerUserId()` | Done |
+| No Next middleware/proxy in v1 | Done — request-boundary cookie refresh deferred; see [auth-session.md](../architecture/auth-session.md) |
 | Auth smoke tests / observability docs | Done |
 | Strict money parsing | Done |
 | Timezone / local calendar day | Done |
@@ -55,7 +56,7 @@ Prioritised hardening for Burnline. Inspired by ISO/IEC 27001 and 27701 practice
 | Security incident runbook | Contact tree, revoke keys, notify users |
 | DPIA / privacy impact assessment | If EU/UK users at scale |
 | External security review | If monetised or high-profile launch |
-| OAuth / magic link threat model | Separate review when enabled |
+| Request-boundary cookie refresh | **Deferred** — previous middleware/proxy attempts caused Vercel failures; reintroduce only via separate Preview-tested branch |
 | Bank sync | New trust boundary; not v1 |
 | Allowlist for `next` redirects | Reduce internal open-navigation |
 | Secret scanning in CI | Prevent committed `.env` |

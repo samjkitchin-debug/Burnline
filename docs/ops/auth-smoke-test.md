@@ -28,7 +28,7 @@ Burnline v1 is **email + password only**. No magic link, OTP code, or OAuth in t
 - [ ] Hard reload `/today` — still signed in, no login bounce
 - [ ] Open `/today` in a new tab — still signed in
 - [ ] Close browser completely, reopen `/today` — still signed in if session valid
-- [ ] **Note:** Root middleware/proxy cookie refresh is temporarily disabled. Long-lived sessions may require re-login when access tokens expire until `src/proxy.ts` is reintroduced.
+- [ ] **Note:** Burnline v1 has no middleware/proxy. Long-lived sessions may require re-login when access tokens expire.
 
 ## Deep link
 

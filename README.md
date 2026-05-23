@@ -35,7 +35,7 @@ Apply all migrations under `supabase/migrations/` (see [setup guide](docs/ops/se
 
 **Vercel deployment:** set `NEXT_PUBLIC_SUPABASE_URL` (`https://huptejlrdmbkwuxmaejm.supabase.co`) and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in **Vercel → Project Settings → Environment Variables** for Production and Preview. Redeploy after adding them. Do not use the dashboard URL as the project URL. Do not add the service role key.
 
-**Session (production):** Root middleware/proxy cookie refresh is temporarily disabled to restore availability. Server route guards and Supabase RLS remain the access-control source of truth. Users may need to log in again when access tokens expire until cookie refresh is reintroduced via `src/proxy.ts`.
+**Session (production):** Burnline v1 has **no** Next middleware or proxy. Request-boundary cookie refresh is intentionally deferred after repeated Vercel failures. Server route guards and Supabase RLS remain the access-control source of truth. Users may need to log in again when access tokens expire. See [auth session](docs/architecture/auth-session.md) and [Vercel smoke test](docs/ops/vercel-smoke-test.md).
 
 ```bash
 npm run dev
@@ -65,7 +65,7 @@ Manual QA: [local smoke test](docs/ops/local-smoke-test.md), [auth smoke test](d
 
 - Supabase Auth + Postgres **RLS** on user-owned tables  
 - **No** service role key in app code  
-- **No** root middleware/proxy (cookie refresh temporarily off; guards + RLS enforce access)  
+- **No** Next middleware/proxy in v1 (request-boundary cookie refresh deferred; guards + RLS enforce access)  
 - **No** bank sync, third-party analytics, or sale of personal financial data in v1  
 - ISO/IEC 27001/27701-**inspired** discipline — **not certified**  
 - Details: [security docs](docs/security/privacy-security-architecture.md)
@@ -93,6 +93,7 @@ docs/                 # Product, architecture, ops, security
 | [Timezone](docs/architecture/timezone.md) | Financial timezone + tracking start |
 | [Auth session](docs/architecture/auth-session.md) | Guards and session doctrine |
 | [Setup & deployment](docs/ops/setup-and-deployment.md) | Supabase + GitHub |
+| [Vercel smoke test](docs/ops/vercel-smoke-test.md) | Post-deploy checks |
 | [Schema](docs/schema.md) | Tables and fields |
 
 ## Known v1 limitations

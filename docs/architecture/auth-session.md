@@ -6,7 +6,7 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 
 | Rule | Implementation |
 |------|----------------|
-| Cookie refresh temporarily disabled | Root `middleware.ts` removed — `@supabase/ssr` crashed at module load on Vercel (`__dirname is not defined`). Reintroduce via `src/proxy.ts` in a separate pass. |
+| No request-boundary auth layer | Burnline v1 intentionally has **no** `middleware.ts`, `proxy.ts`, or edge cookie refresh. Previous attempts caused Vercel deployment failures (`MIDDLEWARE_INVOCATION_FAILED`, platform 404). |
 | Server auth helper is source of truth | `getServerUserId()` in `src/lib/auth/server.ts` uses `getUser()` only |
 | Route guards own protected redirects | `guardAuthenticatedAppRoute()` / `guardOnboardingPage()` in `src/lib/auth/guard.ts` |
 | Client components never decide access | No `getSession()` in client; no auth probes on mount/focus/visibility |
@@ -19,21 +19,24 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 | No secrets in logs | See `src/lib/auth/log.ts` |
 | No financial data in auth logs | Route paths only, no amounts |
 
-### Production posture (temporary)
+### Production posture (v1)
 
-- **No root middleware or proxy** — cookie refresh is off until `src/proxy.ts` is added in a controlled pass.
-- **Route guards remain authoritative** — protected routes still redirect to `/login?next=...` via server guards.
+- **No Next middleware or proxy** — request-boundary cookie refresh is deferred, not missing by accident.
+- **Route guards are authoritative** — protected routes redirect to `/login?next=...` via server guards.
 - **RLS remains enforced** on all user-owned tables.
 - **Email/password auth** remains the v1 auth model (no OAuth, magic link, or OTP in app code).
-- **Users may need to log in again** when Supabase access tokens expire until cookie refresh is reintroduced. This is intentional to restore production availability.
+- **Users may need to log in again** when Supabase access tokens expire until cookie refresh is reintroduced in a separate branch and Vercel Preview deployment.
 
-### Future: cookie refresh via `src/proxy.ts`
+### Guardrail: do not add middleware/proxy casually
 
-Reintroduce session cookie refresh using Next 16 **`src/proxy.ts`**, not `middleware.ts`:
+Do **not** create `middleware.ts` or `proxy.ts` in Burnline unless **all** of the following are true:
 
-- Proxy should be **self-contained** and **Node runtime by default**.
-- Do **not** import shared app helpers (`@/lib/*`, guards, `server.ts`) into proxy.
-- Proxy refreshes cookies only — **must never redirect** for access control.
+1. A specific auth/session problem is **proved by logs** (not assumed).
+2. The change is tested on **Vercel Preview** first — not pushed straight to production.
+3. It does **not** import `@supabase/ssr` (or transitive deps) in a way that crashes deployment (e.g. `__dirname` in Edge runtime).
+4. Public pages (`/about`, `/privacy`, `/login`, etc.) remain accessible without platform errors.
+
+Cookie refresh at the request boundary, if ever reintroduced, must be a **separate controlled pass** — self-contained, Node runtime by default, no `@/lib/*` imports, refresh only (never redirect for access control).
 
 ## Authority: `getUser()` not `getSession()`
 
@@ -114,4 +117,5 @@ Bill streams are optional (steps 3–4).
 ## Related docs
 
 - [Auth smoke test](../ops/auth-smoke-test.md)
+- [Vercel smoke test](../ops/vercel-smoke-test.md)
 - [Auth observability](../ops/auth-observability.md)
