@@ -6,9 +6,7 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 
 | Rule | Implementation |
 |------|----------------|
-| Middleware refreshes cookies only | Root `middleware.ts` calls `getUser()` inline to refresh cookies |
-| Middleware runs in Node.js runtime (runtime = nodejs) | Root `middleware.ts` is **self-contained** — only `next/server` + `@supabase/ssr` + `process.env`; no `@/lib/*` imports |
-| Middleware must never redirect to login | No `redirect()` in middleware |
+| Cookie refresh temporarily disabled | Root `middleware.ts` removed — `@supabase/ssr` crashed at module load on Vercel (`__dirname is not defined`). Reintroduce via `src/proxy.ts` in a separate pass. |
 | Server auth helper is source of truth | `getServerUserId()` in `src/lib/auth/server.ts` uses `getUser()` only |
 | Route guards own protected redirects | `guardAuthenticatedAppRoute()` / `guardOnboardingPage()` in `src/lib/auth/guard.ts` |
 | Client components never decide access | No `getSession()` in client; no auth probes on mount/focus/visibility |
@@ -21,9 +19,25 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 | No secrets in logs | See `src/lib/auth/log.ts` |
 | No financial data in auth logs | Route paths only, no amounts |
 
+### Production posture (temporary)
+
+- **No root middleware or proxy** — cookie refresh is off until `src/proxy.ts` is added in a controlled pass.
+- **Route guards remain authoritative** — protected routes still redirect to `/login?next=...` via server guards.
+- **RLS remains enforced** on all user-owned tables.
+- **Email/password auth** remains the v1 auth model (no OAuth, magic link, or OTP in app code).
+- **Users may need to log in again** when Supabase access tokens expire until cookie refresh is reintroduced. This is intentional to restore production availability.
+
+### Future: cookie refresh via `src/proxy.ts`
+
+Reintroduce session cookie refresh using Next 16 **`src/proxy.ts`**, not `middleware.ts`:
+
+- Proxy should be **self-contained** and **Node runtime by default**.
+- Do **not** import shared app helpers (`@/lib/*`, guards, `server.ts`) into proxy.
+- Proxy refreshes cookies only — **must never redirect** for access control.
+
 ## Authority: `getUser()` not `getSession()`
 
-- **Allowed:** `supabase.auth.getUser()` on server (middleware, guards, actions).
+- **Allowed:** `supabase.auth.getUser()` on server (guards, actions).
 - **Forbidden:** `getSession()` for access control (stale JWT risk).
 - Client browser client exists for future use but must not gate routes.
 
@@ -31,7 +45,6 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 
 ```
 Request
-  → middleware (refresh cookies, no redirect)
   → Server Component / Server Action
   → guard*() or resolvePostAuthDestination()
   → getServerUserId()
@@ -97,7 +110,6 @@ Bill streams are optional (steps 3–4).
 | `src/app/actions/auth.ts` | `passwordAuthAction`, `signOut` |
 | `src/app/login/LoginForm.tsx` | Client form (no access control) |
 | `src/lib/supabase/server.ts` | Server Components / actions only (`next/headers`) |
-| `middleware.ts` | Node.js middleware entry (runtime = nodejs) — **do not extract** into shared helpers; no `@/lib` imports |
 
 ## Related docs
 

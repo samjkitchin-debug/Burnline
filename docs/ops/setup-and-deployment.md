@@ -204,7 +204,7 @@ Set **both** for **Production** and **Preview**. Redeploy after adding or changi
 
 - [ ] `NEXT_PUBLIC_SUPABASE_URL` set in Vercel (Production + Preview)
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` set in Vercel (Production + Preview)
-- [ ] Middleware is **self-contained** — root `middleware.ts` imports only `next/server` + `@supabase/ssr`. Do not import `@/lib/*`, guards, or `server.ts` into middleware.
+- [ ] **No root `middleware.ts` or `proxy.ts`** — cookie refresh is temporarily disabled; route guards + RLS enforce access.
 - [ ] Import repo https://github.com/samjkitchin-debug/Burnline  
 - [ ] Framework preset: **Next.js**  
 - [ ] Add Vercel preview/production URLs to Supabase **Redirect URLs**  
@@ -216,13 +216,15 @@ Set **both** for **Production** and **Preview**. Redeploy after adding or changi
 
 If the prod URL shows a `500` with `MIDDLEWARE_INVOCATION_FAILED`:
 
-1. Open **Vercel → Project → Deployments → [deployment] → Functions** — check middleware logs for the actual error.
-2. Confirm `NEXT_PUBLIC_SUPABASE_URL` is set in Vercel (not just `.env.local`).
-3. Confirm `NEXT_PUBLIC_SUPABASE_URL` starts with `https://` and ends with `.supabase.co` — not the dashboard URL.
-4. Confirm `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set and not empty.
-5. Confirm `middleware.ts` has **no** `@/lib` imports (`grep "@/lib" middleware.ts` should return nothing).
-6. Middleware is fail-open by design — if env vars are missing or malformed it returns `NextResponse.next()` without throwing. If it still crashes, the error is in the Vercel logs.
+1. Confirm there is **no** root `middleware.ts` in the deployed commit — middleware cookie refresh is temporarily removed because `@supabase/ssr` can crash at module load (`ReferenceError: __dirname is not defined`). Route guards and RLS still protect the app.
+2. Open **Vercel → Project → Deployments → [deployment] → Functions** — check logs if errors persist after middleware removal.
+3. Confirm `NEXT_PUBLIC_SUPABASE_URL` is set in Vercel (not just `.env.local`).
+4. Confirm `NEXT_PUBLIC_SUPABASE_URL` is `https://huptejlrdmbkwuxmaejm.supabase.co` — not the dashboard URL.
+5. Confirm `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set and not empty.
+6. **Do not** add the service role key to Vercel.
 7. Trigger a fresh deploy after any env var change.
+
+**Session note:** Without middleware/proxy cookie refresh, users may need to log in again when access tokens expire. Future work: reintroduce refresh via self-contained `src/proxy.ts` (Node runtime, no `@/lib` imports).
 
 ## Post-deployment smoke test checklist
 

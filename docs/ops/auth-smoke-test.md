@@ -27,7 +27,8 @@ Burnline v1 is **email + password only**. No magic link, OTP code, or OAuth in t
 - [ ] Log in and open `/today`
 - [ ] Hard reload `/today` — still signed in, no login bounce
 - [ ] Open `/today` in a new tab — still signed in
-- [ ] Close browser completely, reopen `/today` — still signed in if session valid (Supabase refresh cookie)
+- [ ] Close browser completely, reopen `/today` — still signed in if session valid
+- [ ] **Note:** Root middleware/proxy cookie refresh is temporarily disabled. Long-lived sessions may require re-login when access tokens expire until `src/proxy.ts` is reintroduced.
 
 ## Deep link
 
@@ -80,7 +81,7 @@ Burnline v1 is **email + password only**. No magic link, OTP code, or OAuth in t
 
 ## Anti-patterns to watch (fail if seen)
 
-- [ ] No redirect to login from middleware (self-contained Edge proxy in root `middleware.ts` only)
+- [ ] No redirect to login from middleware or proxy (none active — guards only)
 - [ ] No client-side “checking session…” on every page load
 - [ ] No `getSession()` in Network tab used for route gates
 - [ ] Auth logs in server console contain no emails, tokens, or spend amounts

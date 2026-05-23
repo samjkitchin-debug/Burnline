@@ -19,7 +19,7 @@ export async function createSupabaseServerClient() {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // Called from a Server Component; middleware will refresh session.
+            // Called from a Server Component; cookie refresh is not active until proxy.ts.
           }
         },
       },
