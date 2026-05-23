@@ -190,8 +190,8 @@ If your local branch is still `master`, rename before push or push explicitly: `
 
 ## Vercel deployment checklist (later)
 
-- [ ] Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel project env (required for Edge middleware cookie refresh)
-- [ ] Middleware is **Edge Runtime** — it must only use `src/lib/supabase/edge-middleware.ts` (not `server.ts`, not route guards, not `next/headers`)
+- [ ] Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel project env (required for Edge middleware cookie refresh; **no service role key**)
+- [ ] Middleware is **Edge Runtime** — root `middleware.ts` is self-contained (`next/server` + `@supabase/ssr` only). Do not import `@/lib/*`, guards, or `server.ts` into middleware
 - [ ] Import repo https://github.com/samjkitchin-debug/Burnline  
 - [ ] Framework preset: **Next.js**  
 - [ ] Set environment variables in Vercel project settings (not in repo):

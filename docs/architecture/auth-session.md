@@ -6,8 +6,8 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 
 | Rule | Implementation |
 |------|----------------|
-| Middleware/proxy refreshes cookies only | Root `middleware.ts` → `src/lib/supabase/edge-middleware.ts` calls `getUser()` to refresh cookies |
-| Middleware runs on Edge (Vercel) | Edge helper imports only `next/server` + `@supabase/ssr` + `process.env` — not `@/lib/env`, not `server.ts`, not guards |
+| Middleware/proxy refreshes cookies only | Root `middleware.ts` calls `getUser()` inline to refresh cookies |
+| Middleware runs on Edge (Vercel) | Root `middleware.ts` is **self-contained** — only `next/server` + `@supabase/ssr` + `process.env`; no `@/lib/*` imports |
 | Middleware must never redirect to login | No `redirect()` in middleware |
 | Server auth helper is source of truth | `getServerUserId()` in `src/lib/auth/server.ts` uses `getUser()` only |
 | Route guards own protected redirects | `guardAuthenticatedAppRoute()` / `guardOnboardingPage()` in `src/lib/auth/guard.ts` |
@@ -96,9 +96,8 @@ Bill streams are optional (steps 3–4).
 | `src/lib/auth/log.ts` | Structured auth events |
 | `src/app/actions/auth.ts` | `passwordAuthAction`, `signOut` |
 | `src/app/login/LoginForm.tsx` | Client form (no access control) |
-| `src/lib/supabase/edge-middleware.ts` | Edge-only cookie refresh (do not add server imports here) |
 | `src/lib/supabase/server.ts` | Server Components / actions only (`next/headers`) |
-| `middleware.ts` | Edge proxy entry — must not import server auth helpers |
+| `middleware.ts` | Edge proxy entry — **do not extract** into shared helpers; no `@/lib` imports |
 
 ## Related docs
 
