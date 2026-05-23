@@ -188,19 +188,41 @@ git push -u origin main
 
 If your local branch is still `master`, rename before push or push explicitly: `git push -u origin master:main`.
 
-## Vercel deployment checklist (later)
+## Vercel deployment checklist
 
-- [ ] Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel project env (required for Edge middleware cookie refresh; **no service role key**)
-- [ ] Middleware is **Edge Runtime** — root `middleware.ts` is self-contained (`next/server` + `@supabase/ssr` only). Do not import `@/lib/*`, guards, or `server.ts` into middleware
+### Required environment variables (Vercel → Project Settings → Environment Variables)
+
+Set **both** for **Production** and **Preview**. Redeploy after adding or changing these.
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://huptejlrdmbkwuxmaejm.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your project's public anon key (from Supabase → API settings) |
+
+**Do not** add the service role key to Vercel — it is never used by the app.  
+**Do not** use the Supabase dashboard URL — use the API project URL starting with `https://`.
+
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` set in Vercel (Production + Preview)
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` set in Vercel (Production + Preview)
+- [ ] Middleware is **self-contained** — root `middleware.ts` imports only `next/server` + `@supabase/ssr`. Do not import `@/lib/*`, guards, or `server.ts` into middleware.
 - [ ] Import repo https://github.com/samjkitchin-debug/Burnline  
 - [ ] Framework preset: **Next.js**  
-- [ ] Set environment variables in Vercel project settings (not in repo):
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] Add Vercel preview/production URLs to Supabase **Redirect URLs**  
 - [ ] Update Supabase **Site URL** for production when ready  
 - [ ] Run production build: `npm run build`  
 - [ ] Deploy; do not enable service role in Vercel for the Next.js app in v1  
+
+### Troubleshooting: `MIDDLEWARE_INVOCATION_FAILED`
+
+If the prod URL shows a `500` with `MIDDLEWARE_INVOCATION_FAILED`:
+
+1. Open **Vercel → Project → Deployments → [deployment] → Functions** — check middleware logs for the actual error.
+2. Confirm `NEXT_PUBLIC_SUPABASE_URL` is set in Vercel (not just `.env.local`).
+3. Confirm `NEXT_PUBLIC_SUPABASE_URL` starts with `https://` and ends with `.supabase.co` — not the dashboard URL.
+4. Confirm `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set and not empty.
+5. Confirm `middleware.ts` has **no** `@/lib` imports (`grep "@/lib" middleware.ts` should return nothing).
+6. Middleware is fail-open by design — if env vars are missing or malformed it returns `NextResponse.next()` without throwing. If it still crashes, the error is in the Vercel logs.
+7. Trigger a fresh deploy after any env var change.
 
 ## Post-deployment smoke test checklist
 

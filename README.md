@@ -33,6 +33,8 @@ Apply all migrations under `supabase/migrations/` (see [setup guide](docs/ops/se
 
 **Auth (v1):** email + password only — no magic link, OTP, or OAuth in the app. Supabase **Authentication → Providers → Email**: sign-up on, **Confirm email OFF** for local dev. Site URL `http://localhost:3000`, redirect `http://localhost:3000/**`.
 
+**Vercel deployment:** set `NEXT_PUBLIC_SUPABASE_URL` (`https://huptejlrdmbkwuxmaejm.supabase.co`) and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in **Vercel → Project Settings → Environment Variables** for Production and Preview. Redeploy after adding them. Do not use the dashboard URL as the project URL. Do not add the service role key.
+
 ```bash
 npm run dev
 ```
