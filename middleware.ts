@@ -1,15 +1,15 @@
 /**
- * NOTE:
- * This file runs in the Node.js runtime (Next.js 16+ "Proxy" convention).
- * Keep it self-contained — do not import app helpers, route guards,
- * next/headers, or server-only data loaders.
- * Proxy refreshes Supabase cookies only and must fail open.
+ * Runs in Node.js runtime (not Edge) — required because @supabase/ssr and its
+ * dependencies reference __dirname, which does not exist in the Edge Runtime.
+ * Refreshes Supabase auth cookies only. Must never redirect.
  * Route guards own access control. See docs/architecture/auth-session.md
  */
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function proxy(request: NextRequest) {
+export const runtime = "nodejs";
+
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   try {
@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
 
     return response;
   } catch {
-    // Fail open — never let proxy crash the app.
+    // Fail open — never let middleware crash the app.
     return response;
   }
 }

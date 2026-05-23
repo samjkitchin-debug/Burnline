@@ -6,9 +6,9 @@ Auth friction is product failure. Users must open Burnline and log spends withou
 
 | Rule | Implementation |
 |------|----------------|
-| Proxy refreshes cookies only | Root `proxy.ts` calls `getUser()` inline to refresh cookies |
-| Proxy runs in Node.js runtime (Next.js 16+) | Root `proxy.ts` is **self-contained** — only `next/server` + `@supabase/ssr` + `process.env`; no `@/lib/*` imports |
-| Middleware must never redirect to login | No `redirect()` in proxy |
+| Middleware refreshes cookies only | Root `middleware.ts` calls `getUser()` inline to refresh cookies |
+| Middleware runs in Node.js runtime (runtime = nodejs) | Root `middleware.ts` is **self-contained** — only `next/server` + `@supabase/ssr` + `process.env`; no `@/lib/*` imports |
+| Middleware must never redirect to login | No `redirect()` in middleware |
 | Server auth helper is source of truth | `getServerUserId()` in `src/lib/auth/server.ts` uses `getUser()` only |
 | Route guards own protected redirects | `guardAuthenticatedAppRoute()` / `guardOnboardingPage()` in `src/lib/auth/guard.ts` |
 | Client components never decide access | No `getSession()` in client; no auth probes on mount/focus/visibility |
@@ -97,7 +97,7 @@ Bill streams are optional (steps 3–4).
 | `src/app/actions/auth.ts` | `passwordAuthAction`, `signOut` |
 | `src/app/login/LoginForm.tsx` | Client form (no access control) |
 | `src/lib/supabase/server.ts` | Server Components / actions only (`next/headers`) |
-| `proxy.ts` | Node.js proxy entry — **do not extract** into shared helpers; no `@/lib` imports |
+| `middleware.ts` | Node.js middleware entry (runtime = nodejs) — **do not extract** into shared helpers; no `@/lib` imports |
 
 ## Related docs
 
